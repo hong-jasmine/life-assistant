@@ -1,0 +1,463 @@
+/* ========== 賽博龐克深色模式樣式 ========== */
+
+/* 深色模式變數 */
+:root {
+  --bg-primary: #f3f4f6;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f9fafb;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --border-color: #e5e7eb;
+  --shadow: rgba(0, 0, 0, 0.1);
+
+  /* 數字字體 */
+  --font-mono: 'Courier New', Consolas, Monaco, monospace;
+}
+
+[data-theme="dark"] {
+  /* 賽博龐克配色 */
+  --bg-primary: #0d1117;
+  --bg-secondary: rgba(22, 27, 34, 0.8);
+  --bg-tertiary: rgba(33, 38, 45, 0.6);
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --border-color: rgba(56, 139, 253, 0.3);
+  --shadow: rgba(0, 0, 0, 0.5);
+
+  /* 霓虹色 */
+  --neon-cyan: #00d9ff;
+  --neon-magenta: #ff006e;
+  --neon-purple: #b537f2;
+  --neon-green: #39ff14;
+  --neon-yellow: #ffea00;
+}
+
+/* Tailwind dark mode compatibility */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg-primary: #0d1117;
+    --bg-secondary: rgba(22, 27, 34, 0.8);
+    --bg-tertiary: rgba(33, 38, 45, 0.6);
+    --text-primary: #e6edf3;
+    --text-secondary: #8b949e;
+    --border-color: rgba(56, 139, 253, 0.3);
+    --shadow: rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* ========== 基礎樣式 ========== */
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  position: relative;
+}
+
+/* 深色模式網格背景 */
+[data-theme="dark"] body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image:
+    linear-gradient(rgba(56, 139, 253, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56, 139, 253, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body>* {
+  position: relative;
+  z-index: 1;
+}
+
+/* ========== 卡片樣式（毛玻璃效果） ========== */
+
+.card {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+[data-theme="dark"] .card {
+  background: rgba(22, 27, 34, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(56, 139, 253, 0.2);
+  box-shadow:
+    0 8px 32px 0 rgba(0, 0, 0, 0.37),
+    inset 0 0 20px rgba(56, 139, 253, 0.05);
+}
+
+/* 霓虹發光效果 */
+[data-theme="dark"] .card:hover {
+  border-color: rgba(56, 139, 253, 0.5);
+  box-shadow:
+    0 0 20px rgba(0, 217, 255, 0.3),
+    0 0 40px rgba(0, 217, 255, 0.1),
+    inset 0 0 20px rgba(56, 139, 253, 0.1);
+}
+
+/* 統計卡片特殊發光 */
+[data-theme="dark"] .card.stat-card {
+  border: 1px solid rgba(0, 217, 255, 0.3);
+  box-shadow:
+    0 0 15px rgba(0, 217, 255, 0.2),
+    inset 0 0 15px rgba(0, 217, 255, 0.05);
+}
+
+/* 缺角設計 */
+[data-theme="dark"] .card::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(135deg, transparent 50%, rgba(56, 139, 253, 0.2) 50%);
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+}
+
+/* ========== 數字顯示（等寬字體） ========== */
+
+[data-theme="dark"] .stat-value,
+[data-theme="dark"] #total-income,
+[data-theme="dark"] #total-expense,
+[data-theme="dark"] #balance {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-shadow: 0 0 10px currentColor;
+}
+
+/* 收入發光（綠色） */
+[data-theme="dark"] #total-income {
+  color: var(--neon-green);
+  text-shadow:
+    0 0 10px var(--neon-green),
+    0 0 20px rgba(57, 255, 20, 0.5);
+}
+
+/* 支出發光（紅色/洋紅） */
+[data-theme="dark"] #total-expense {
+  color: var(--neon-magenta);
+  text-shadow:
+    0 0 10px var(--neon-magenta),
+    0 0 20px rgba(255, 0, 110, 0.5);
+}
+
+/* 餘額發光（青色） */
+[data-theme="dark"] #balance {
+  color: var(--neon-cyan);
+  text-shadow:
+    0 0 10px var(--neon-cyan),
+    0 0 20px rgba(0, 217, 255, 0.5);
+}
+
+/* ========== 優先級顏色 ========== */
+
+.priority-high {
+  border-left: 4px solid #ef4444;
+}
+
+.priority-medium {
+  border-left: 4px solid #f59e0b;
+}
+
+.priority-low {
+  border-left: 4px solid #10b981;
+}
+
+[data-theme="dark"] .priority-high {
+  border-left: 4px solid var(--neon-magenta);
+  box-shadow: -4px 0 8px rgba(255, 0, 110, 0.3);
+}
+
+[data-theme="dark"] .priority-medium {
+  border-left: 4px solid var(--neon-yellow);
+  box-shadow: -4px 0 8px rgba(255, 234, 0, 0.3);
+}
+
+[data-theme="dark"] .priority-low {
+  border-left: 4px solid var(--neon-green);
+  box-shadow: -4px 0 8px rgba(57, 255, 20, 0.3);
+}
+
+/* ========== 過期任務（閃爍警告） ========== */
+
+.overdue {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+[data-theme="dark"] .overdue {
+  background: rgba(255, 0, 110, 0.15);
+  border: 1px solid rgba(255, 0, 110, 0.4);
+  animation: pulse-warning 2s ease-in-out infinite;
+}
+
+@keyframes pulse-warning {
+
+  0%,
+  100% {
+    box-shadow:
+      0 0 10px rgba(255, 0, 110, 0.4),
+      inset 0 0 10px rgba(255, 0, 110, 0.1);
+  }
+
+  50% {
+    box-shadow:
+      0 0 20px rgba(255, 0, 110, 0.6),
+      inset 0 0 15px rgba(255, 0, 110, 0.2);
+  }
+}
+
+/* ========== 列表項目懸停 ========== */
+
+.list-item-hover:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] .list-item-hover:hover {
+  background: rgba(56, 139, 253, 0.1);
+  border-color: rgba(0, 217, 255, 0.3);
+  box-shadow: 0 0 10px rgba(0, 217, 255, 0.2);
+}
+
+/* ========== 圖表容器 ========== */
+
+.chart-container {
+  position: relative;
+  height: 300px;
+  margin: 20px 0;
+}
+
+[data-theme="dark"] .chart-container {
+  background: rgba(13, 17, 23, 0.4);
+  border: 1px solid rgba(56, 139, 253, 0.2);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+/* ========== 動畫效果 ========== */
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========== 按鈕樣式（漸層金屬質感） ========== */
+
+.btn-hover {
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .btn-hover {
+  background: linear-gradient(135deg, rgba(56, 139, 253, 0.2), rgba(181, 55, 242, 0.2));
+  border: 1px solid rgba(56, 139, 253, 0.4);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .btn-hover::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg,
+      transparent,
+      rgba(0, 217, 255, 0.1),
+      transparent);
+  transform: rotate(45deg);
+  transition: all 0.6s ease;
+}
+
+[data-theme="dark"] .btn-hover:hover::before {
+  left: 100%;
+}
+
+[data-theme="dark"] .btn-hover:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 20px rgba(0, 217, 255, 0.4),
+    0 0 40px rgba(0, 217, 255, 0.2),
+    0 6px 20px rgba(0, 0, 0, 0.4);
+  border-color: rgba(0, 217, 255, 0.6);
+  animation: breathe 1.5s ease-in-out infinite;
+}
+
+@keyframes breathe {
+
+  0%,
+  100% {
+    box-shadow:
+      0 0 20px rgba(0, 217, 255, 0.4),
+      0 0 40px rgba(0, 217, 255, 0.2);
+  }
+
+  50% {
+    box-shadow:
+      0 0 30px rgba(0, 217, 255, 0.6),
+      0 0 60px rgba(0, 217, 255, 0.3);
+  }
+}
+
+/* 特定按鈕顏色 */
+[data-theme="dark"] button.bg-blue-500 {
+  background: linear-gradient(135deg, #388bfd, #b537f2) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] button.bg-green-500 {
+  background: linear-gradient(135deg, #39ff14, #00d9ff) !important;
+  color: #0d1117 !important;
+  font-weight: 600;
+}
+
+[data-theme="dark"] button.bg-purple-500 {
+  background: linear-gradient(135deg, #b537f2, #ff006e) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] button.bg-orange-500 {
+  background: linear-gradient(135deg, #f97316, #fb923c) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] button.bg-gray-500 {
+  background: linear-gradient(135deg, rgba(139, 148, 158, 0.3), rgba(56, 139, 253, 0.3)) !important;
+  color: #e6edf3 !important;
+}
+
+/* 確保按鈕文字在懸停時保持可讀 */
+[data-theme="dark"] button:hover {
+  color: inherit !important;
+}
+
+/* ========== 輸入框樣式 ========== */
+
+input,
+select {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+  transition: all 0.2s ease;
+}
+
+[data-theme="dark"] input,
+[data-theme="dark"] select {
+  background: rgba(13, 17, 23, 0.6);
+  border: 1px solid rgba(56, 139, 253, 0.3);
+  color: var(--text-primary);
+  backdrop-filter: blur(8px);
+}
+
+[data-theme="dark"] input:focus,
+[data-theme="dark"] select:focus {
+  outline: none;
+  border-color: var(--neon-cyan);
+  box-shadow:
+    0 0 10px rgba(0, 217, 255, 0.3),
+    inset 0 0 5px rgba(0, 217, 255, 0.1);
+}
+
+/* ========== 深色模式切換按鈕 ========== */
+
+.theme-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  background-color: var(--bg-secondary);
+  border: 2px solid var(--border-color);
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+
+[data-theme="dark"] .theme-toggle {
+  background: rgba(22, 27, 34, 0.8);
+  border: 2px solid rgba(0, 217, 255, 0.5);
+  box-shadow:
+    0 0 20px rgba(0, 217, 255, 0.3),
+    inset 0 0 10px rgba(0, 217, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.theme-toggle:hover {
+  transform: rotate(180deg) scale(1.1);
+}
+
+[data-theme="dark"] .theme-toggle:hover {
+  box-shadow:
+    0 0 30px rgba(0, 217, 255, 0.5),
+    0 0 60px rgba(0, 217, 255, 0.3),
+    inset 0 0 15px rgba(0, 217, 255, 0.2);
+  border-color: var(--neon-cyan);
+}
+
+/* ========== 響應式優化 ========== */
+
+@media (max-width: 768px) {
+  .chart-container {
+    height: 250px;
+  }
+
+  .theme-toggle {
+    width: 45px;
+    height: 45px;
+    top: 15px;
+    right: 15px;
+  }
+
+  [data-theme="dark"] body::before {
+    background-size: 30px 30px;
+  }
+}
+
+/* ========== 滾動條樣式 ========== */
+
+[data-theme="dark"] ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-track {
+  background: rgba(13, 17, 23, 0.4);
+  border-radius: 4px;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(56, 139, 253, 0.5), rgba(181, 55, 242, 0.5));
+  border-radius: 4px;
+  border: 1px solid rgba(0, 217, 255, 0.3);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(0, 217, 255, 0.7), rgba(255, 0, 110, 0.7));
+  box-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+}

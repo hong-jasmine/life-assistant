@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的生活助手 - 記帳與待辦</title>
+    <meta name="description" content="功能完整的個人財務與任務管理工具，支援收支分類、圖表統計、數據匯入匯出及深色模式">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="min-h-screen p-4 md:p-8">
+
+    <!-- 深色模式切換按鈕 -->
+    <button onclick="toggleTheme()" class="theme-toggle btn-hover" id="theme-toggle-btn" title="切換成深色模式">
+        <span id="theme-icon" class="text-2xl">🌙</span>
+    </button>
+
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-5xl font-bold text-center mb-2">生活助手</h1>
+        <p class="text-center text-xl font-semibold text-gray-600 dark:text-gray-300 mb-8">記帳 + 待辦 + 統計分析</p>
+
+        <!-- 統計摘要 -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div class="card stat-card rounded-xl shadow-md p-6 text-center">
+                <div class="text-base font-semibold text-gray-700 dark:text-gray-300">總收入</div>
+                <div id="total-income" class="stat-value text-3xl font-bold text-green-600 mt-2">$0</div>
+            </div>
+            <div class="card stat-card rounded-xl shadow-md p-6 text-center">
+                <div class="text-base font-semibold text-gray-700 dark:text-gray-300">總支出</div>
+                <div id="total-expense" class="stat-value text-3xl font-bold text-red-600 mt-2">$0</div>
+            </div>
+            <div class="card stat-card rounded-xl shadow-md p-6 text-center">
+                <div class="text-base font-semibold text-gray-700 dark:text-gray-300">淨餘額</div>
+                <div id="balance" class="stat-value text-3xl font-bold mt-2">$0</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+            <!-- 記帳區域 -->
+            <div class="space-y-6">
+                <div class="card rounded-xl shadow-md p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-semibold text-blue-600 dark:text-blue-400">💰 記帳管理</h2>
+                        <div class="flex gap-2">
+                            <select id="account-selector" onchange="switchAccount()" class="border p-2 rounded text-sm">
+                                <option value="default">現金</option>
+                            </select>
+                            <button onclick="showAccountManager()"
+                                class="bg-purple-500 text-white px-3 py-1 rounded text-sm hover:bg-purple-600 btn-hover"
+                                title="管理帳戶">
+                                🏦
+                            </button>
+                            <button onclick="showTransferModal()"
+                                class="bg-orange-500 text-white px-3 py-1 rounded text-sm hover:bg-orange-600 btn-hover"
+                                title="轉帳">
+                                💸
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 新增記錄表單 -->
+                    <div class="space-y-3 mb-6">
+                        <div class="grid grid-cols-2 gap-3">
+                            <select id="transaction-type" onchange="updateCategories()" class="border p-2 rounded">
+                                <option value="expense">支出</option>
+                                <option value="income">收入</option>
+                            </select>
+                            <select id="transaction-category" class="border p-2 rounded">
+                                <option value="食物">食物</option>
+                                <option value="交通">交通</option>
+                                <option value="娛樂">娛樂</option>
+                                <option value="購物">購物</option>
+                                <option value="醫療">醫療</option>
+                                <option value="教育">教育</option>
+                                <option value="其他">其他</option>
+                            </select>
+                        </div>
+                        <input id="transaction-name" type="text" placeholder="項目名稱" class="border p-2 rounded w-full">
+                        <div class="grid grid-cols-2 gap-3">
+                            <input id="transaction-amount" type="number" placeholder="金額" class="border p-2 rounded"
+                                min="0" step="0.01">
+                            <input id="transaction-date" type="date" class="border p-2 rounded">
+                        </div>
+                        <button onclick="addTransaction()"
+                            class="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 btn-hover">
+                            ➕ 新增記錄
+                        </button>
+                    </div>
+
+                    <!-- 日期篩選 -->
+                    <div class="border-t pt-4 mb-4">
+                        <h3 class="font-semibold mb-2">📅 日期篩選</h3>
+                        <div class="grid grid-cols-2 gap-2 mb-2">
+                            <input id="filter-start" type="date" class="border p-2 rounded text-sm">
+                            <input id="filter-end" type="date" class="border p-2 rounded text-sm">
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="filterTransactions()"
+                                class="flex-1 bg-gray-500 text-white px-3 py-1 rounded text-sm hover:bg-gray-600">
+                                篩選
+                            </button>
+                            <button onclick="clearFilter()"
+                                class="flex-1 bg-gray-300 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-400">
+                                清除
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 數據管理 -->
+                    <div class="border-t pt-4">
+                        <h3 class="font-semibold mb-2">💾 數據管理</h3>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="exportData()"
+                                class="bg-green-500 text-white px-3 py-2 rounded text-sm hover:bg-green-600 btn-hover">
+                                匯出JSON
+                            </button>
+                            <button onclick="exportCSV()"
+                                class="bg-green-500 text-white px-3 py-2 rounded text-sm hover:bg-green-600 btn-hover">
+                                匯出CSV
+                            </button>
+                            <button onclick="importData()"
+                                class="bg-purple-500 text-white px-3 py-2 rounded text-sm hover:bg-purple-600 btn-hover">
+                                匯入數據
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 記錄列表 -->
+                <div class="card rounded-xl shadow-md p-6">
+                    <h3 class="text-xl font-semibold mb-4">📋 記錄列表</h3>
+                    <ul id="transaction-list" class="space-y-1 max-h-96 overflow-y-auto"></ul>
+                </div>
+            </div>
+
+            <!-- 待辦與圖表區域 -->
+            <div class="space-y-6">
+                <!-- 待辦事項 -->
+                <div class="card rounded-xl shadow-md p-6">
+                    <h2 class="text-2xl font-semibold text-green-600 dark:text-green-400 mb-4">✅ 待辦事項</h2>
+
+                    <!-- 新增任務表單 -->
+                    <div class="space-y-3 mb-4">
+                        <input id="todo-input" type="text" placeholder="新增任務..." class="border p-2 rounded w-full">
+                        <div class="grid grid-cols-2 gap-3">
+                            <select id="todo-priority" class="border p-2 rounded">
+                                <option value="medium">🟡 中優先級</option>
+                                <option value="high">🔴 高優先級</option>
+                                <option value="low">🟢 低優先級</option>
+                            </select>
+                            <input id="todo-due-date" type="date" class="border p-2 rounded">
+                        </div>
+                        <button onclick="addTodo()"
+                            class="w-full bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 btn-hover">
+                            ➕ 新增任務
+                        </button>
+                    </div>
+
+                    <!-- 排序選項 -->
+                    <div class="mb-4">
+                        <select id="todo-sort" onchange="sortTodos()" class="border p-2 rounded w-full text-sm">
+                            <option value="created">按創建時間排序</option>
+                            <option value="priority">按優先級排序</option>
+                            <option value="dueDate">按截止日期排序</option>
+                        </select>
+                    </div>
+
+                    <!-- 任務列表 -->
+                    <ul id="todo-list" class="space-y-1 max-h-80 overflow-y-auto"></ul>
+                </div>
+
+                <!-- 圖表統計 -->
+                <div class="card rounded-xl shadow-md p-6">
+                    <h2 class="text-2xl font-semibold text-purple-600 dark:text-purple-400 mb-4">📊 統計圖表</h2>
+
+                    <div class="chart-container mb-6">
+                        <canvas id="pieChart"></canvas>
+                    </div>
+
+                    <div class="chart-container">
+                        <canvas id="lineChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 頁尾 -->
+        <footer class="text-center text-gray-500 text-sm mt-12">
+            <p>生活助手 v2.0 | 數據安全保存在您的瀏覽器中</p>
+        </footer>
+    </div>
+
+    <!-- 帳戶管理模態視窗 -->
+    <div id="account-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div
+            class="card bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-2xl font-semibold">🏦 帳戶管理</h3>
+                <button onclick="closeAccountManager()" class="text-gray-500 hover:text-gray-700 text-2xl">×</button>
+            </div>
+
+            <!-- 新增帳戶 -->
+            <div class="mb-6 p-4 border rounded-lg">
+                <h4 class="font-semibold mb-3">新增帳戶</h4>
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <input id="new-account-name" type="text" placeholder="帳戶名稱（例如：中國信託）" class="border p-2 rounded">
+                    <select id="new-account-type" class="border p-2 rounded">
+                        <option value="cash">現金</option>
+                        <option value="bank">銀行帳戶</option>
+                        <option value="credit">信用卡</option>
+                    </select>
+                </div>
+                <button onclick="addAccount()"
+                    class="w-full bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 btn-hover">
+                    ➕ 新增帳戶
+                </button>
+            </div>
+
+            <!-- 帳戶列表 -->
+            <div>
+                <h4 class="font-semibold mb-3">現有帳戶</h4>
+                <ul id="account-list" class="space-y-2"></ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 轉帳模態視窗 -->
+    <div id="transfer-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="card bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 max-w-md w-full mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-2xl font-semibold">💸 帳戶轉帳</h3>
+                <button onclick="closeTransferModal()" class="text-gray-500 hover:text-gray-700 text-2xl">×</button>
+            </div>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-sm font-medium mb-1">從帳戶</label>
+                    <select id="transfer-from" class="border p-2 rounded w-full">
+                        <option value="default">現金</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-1">到帳戶</label>
+                    <select id="transfer-to" class="border p-2 rounded w-full">
+                        <option value="default">現金</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-1">轉帳金額</label>
+                    <input id="transfer-amount" type="number" placeholder="金額" class="border p-2 rounded w-full" min="0"
+                        step="0.01">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-1">日期</label>
+                    <input id="transfer-date" type="date" class="border p-2 rounded w-full">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-1">備註（可選）</label>
+                    <input id="transfer-note" type="text" placeholder="例如：提款、存款" class="border p-2 rounded w-full">
+                </div>
+
+                <button onclick="addTransfer()"
+                    class="w-full bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 btn-hover mt-4">
+                    ✓ 確認轉帳
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // 主題圖標更新
+        document.addEventListener('DOMContentLoaded', () => {
+            updateThemeIcon();
+        });
+
+        function toggleTheme() {
+            // 直接實作主題切換，避免無限遞迴
+            const currentTheme = localStorage.getItem('theme') || 'light';
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+            localStorage.setItem('theme', newTheme);
+            document.documentElement.setAttribute('data-theme', newTheme);
+
+            // 更新 app.js 中的全局 theme 變數（使用 eval 來更新本地作用域的變數）
+            try {
+                eval(`theme = '${newTheme}';`);
+            } catch (e) {
+                console.warn('Could not update theme variable:', e);
+            }
+            window.theme = newTheme;
+
+            // 更新圖標和按鈕文字
+            updateThemeIcon();
+
+            // 重新渲染圖表以適應新主題
+            if (typeof initCharts === 'function') {
+                if (window.myPieChart) window.myPieChart.destroy();
+                if (window.myLineChart) window.myLineChart.destroy();
+                initCharts();
+            }
+        }
+
+        function updateThemeIcon() {
+            const icon = document.getElementById('theme-icon');
+            const btn = document.getElementById('theme-toggle-btn');
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            icon.textContent = currentTheme === 'dark' ? '☀️' : '🌙';
+            btn.title = currentTheme === 'dark' ? '切換成淺色模式' : '切換成深色模式';
+        }
+    </script>
+</body>
+
+</html>
