@@ -29,7 +29,8 @@ cd life-assistant
 
 4. **介面預覽 (Preview)**
 <img width="1631" height="1115" alt="image" src="https://github.com/user-attachments/assets/0bd41661-e779-4db4-9575-b4b050435414" />
-<img width="1610" height="1157" alt="image" src="https://github.com/user-attachments/assets/2ca0411a-89ae-477f-98ee-9e3257d0c97c" />
+<img width="1602" height="1126" alt="image" src="https://github.com/user-attachments/assets/89dcf8c4-e1ca-45ba-a436-38ca5f5a350a" />
+
 
 5. **授權 (License)**
 本專案採用 Apache 2.0 授權。
