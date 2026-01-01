@@ -177,10 +177,17 @@
                 <div class="card rounded-xl shadow-md p-6">
                     <h2 class="text-2xl font-semibold text-purple-600 dark:text-purple-400 mb-4">📊 統計圖表</h2>
 
-                    <div class="chart-container mb-6">
-                        <canvas id="pieChart"></canvas>
+                    <!-- 圓餅圖區域 - 並排顯示 -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div class="chart-container">
+                            <canvas id="expensePieChart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="incomePieChart"></canvas>
+                        </div>
                     </div>
 
+                    <!-- 折線圖區域 -->
                     <div class="chart-container">
                         <canvas id="lineChart"></canvas>
                     </div>
@@ -304,7 +311,8 @@
 
             // 重新渲染圖表以適應新主題
             if (typeof initCharts === 'function') {
-                if (window.myPieChart) window.myPieChart.destroy();
+                if (window.myExpensePieChart) window.myExpensePieChart.destroy();
+                if (window.myIncomePieChart) window.myIncomePieChart.destroy();
                 if (window.myLineChart) window.myLineChart.destroy();
                 initCharts();
             }
