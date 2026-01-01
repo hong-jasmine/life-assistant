@@ -542,12 +542,13 @@ function updateStats(data = getAccountTransactions()) {
 
 // ========== 圖表功能 ==========
 function initCharts() {
-  createPieChart();
+  createExpensePieChart();
+  createIncomePieChart();
   createLineChart();
 }
 
-function createPieChart() {
-  const ctx = document.getElementById('pieChart');
+function createExpensePieChart() {
+  const ctx = document.getElementById('expensePieChart');
   if (!ctx) return;
 
   const accountData = getAccountTransactions();
@@ -558,9 +559,9 @@ function createPieChart() {
 
   if (Object.keys(expenseData).length === 0) {
     // 沒有數據時銷毀現有圖表
-    if (window.myPieChart) {
-      window.myPieChart.destroy();
-      window.myPieChart = null;
+    if (window.myExpensePieChart) {
+      window.myExpensePieChart.destroy();
+      window.myExpensePieChart = null;
     }
     return;
   }
@@ -568,9 +569,9 @@ function createPieChart() {
   const isDark = theme === 'dark';
   const textColor = isDark ? '#f9fafb' : '#1f2937';
 
-  if (window.myPieChart) window.myPieChart.destroy();
+  if (window.myExpensePieChart) window.myExpensePieChart.destroy();
 
-  window.myPieChart = new Chart(ctx, {
+  window.myExpensePieChart = new Chart(ctx, {
     type: 'doughnut',
     data: {
       labels: Object.keys(expenseData),
@@ -590,6 +591,57 @@ function createPieChart() {
         title: {
           display: true,
           text: '支出分類統計',
+          color: textColor
+        }
+      }
+    }
+  });
+}
+
+function createIncomePieChart() {
+  const ctx = document.getElementById('incomePieChart');
+  if (!ctx) return;
+
+  const accountData = getAccountTransactions();
+  const incomeData = {};
+  accountData.filter(t => t.type === 'income').forEach(t => {
+    incomeData[t.category] = (incomeData[t.category] || 0) + t.amount;
+  });
+
+  if (Object.keys(incomeData).length === 0) {
+    // 沒有數據時銷毀現有圖表
+    if (window.myIncomePieChart) {
+      window.myIncomePieChart.destroy();
+      window.myIncomePieChart = null;
+    }
+    return;
+  }
+
+  const isDark = theme === 'dark';
+  const textColor = isDark ? '#f9fafb' : '#1f2937';
+
+  if (window.myIncomePieChart) window.myIncomePieChart.destroy();
+
+  window.myIncomePieChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(incomeData),
+      datasets: [{
+        data: Object.values(incomeData),
+        backgroundColor: ['#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#14b8a6', '#f97316', '#84cc16', '#6b7280', '#ef4444'],
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { color: textColor }
+        },
+        title: {
+          display: true,
+          text: '收入分類統計',
           color: textColor
         }
       }
