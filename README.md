@@ -1,4 +1,4 @@
-# ⚡ LIFE-ASSISTANT | 未來生活指揮中心
+# ⚡ 極速卡片.Flash cards | LIFE-ASSISTANT | 未來生活指揮中心
 
 這是一個專為追求效率與科技美學設計的個人生活管理工具。整合財務管理、任務追蹤與數據分析。
 
@@ -28,7 +28,7 @@ cd life-assistant
  直接在瀏覽器中打開 index.html 即可體驗。
 
 4. **介面預覽 (Preview)**
-<img width="1631" height="1115" alt="image" src="https://github.com/user-attachments/assets/0bd41661-e779-4db4-9575-b4b050435414" />
+<img width="1623" height="1100" alt="image" src="https://github.com/user-attachments/assets/fc0939da-52ff-4bd3-a94c-f02c4e952bf1" />
 <img width="1602" height="1126" alt="image" src="https://github.com/user-attachments/assets/89dcf8c4-e1ca-45ba-a436-38ca5f5a350a" />
 
 
