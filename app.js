@@ -417,16 +417,17 @@ function addTransaction() {
     account: currentAccount
   };
 
-  transactions.push(transaction);
+  // 使用命令模式執行，支援撤銷
+  const command = new AddTransactionCommand(transaction);
+  commandManager.executeCommand(command);
 
   // 清空輸入
   document.getElementById('transaction-name').value = '';
   document.getElementById('transaction-amount').value = '';
   document.getElementById('transaction-date').value = '';
+
   // 更新成就系統
   updateAchievements();
-
-  saveAndRender();
 }
 
 function addTransfer() {
@@ -499,8 +500,9 @@ function closeTransferModal() {
 
 function deleteTransaction(id) {
   if (confirm('確定要刪除這筆記錄嗎？')) {
-    transactions = transactions.filter(t => t.id !== id);
-    saveAndRender();
+    // 使用命令模式執行，支援撤銷
+    const command = new DeleteTransactionCommand(id);
+    commandManager.executeCommand(command);
   }
 }
 
@@ -574,13 +576,13 @@ function addTodo() {
     createdAt: new Date().toISOString()
   };
 
-  todos.push(todo);
+  // 使用命令模式執行，支援撤銷
+  const command = new AddTodoCommand(todo);
+  commandManager.executeCommand(command);
 
   // 清空輸入
   document.getElementById('todo-input').value = '';
   document.getElementById('todo-due-date').value = '';
-
-  saveAndRender();
 }
 
 function toggleTodo(id) {
@@ -593,8 +595,9 @@ function toggleTodo(id) {
 
 function deleteTodo(id) {
   if (confirm('確定要刪除這個任務嗎？')) {
-    todos = todos.filter(t => t.id !== id);
-    saveAndRender();
+    // 使用命令模式執行，支援撤銷
+    const command = new DeleteTodoCommand(id);
+    commandManager.executeCommand(command);
   }
 }
 
@@ -1346,3 +1349,40 @@ function deleteCustomCategory(name) {
   render();
 }
 
+// ========== 撤銷/重做功能 ==========
+
+// 執行撤銷
+function performUndo() {
+  if (commandManager && commandManager.canUndo()) {
+    commandManager.undo();
+  }
+}
+
+// 執行重做
+function performRedo() {
+  if (commandManager && commandManager.canRedo()) {
+    commandManager.redo();
+  }
+}
+
+// 鍵盤快捷鍵支援
+document.addEventListener('keydown', function (e) {
+  // Ctrl+Z 或 Cmd+Z: 撤銷
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+    e.preventDefault();
+    performUndo();
+  }
+
+  // Ctrl+Y 或 Cmd+Shift+Z: 重做
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+    e.preventDefault();
+    performRedo();
+  }
+});
+
+// 初始化時更新撤銷/重做按鈕狀態
+document.addEventListener('DOMContentLoaded', function () {
+  if (commandManager) {
+    commandManager.updateUI();
+  }
+});

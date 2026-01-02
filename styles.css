@@ -914,3 +914,98 @@ select {
 .category-delete:hover {
   background: #dc2626;
 }
+
+/* ========== 工具欄 ========== */
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+
+[data-theme="dark"] .toolbar {
+  background: rgba(22, 27, 34, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(56, 139, 253, 0.2);
+}
+
+.toolbar-left,
+.toolbar-right {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.toolbar-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.toolbar-btn:hover:not(:disabled) {
+  background: rgba(96, 165, 250, 0.1);
+  border-color: #60a5fa;
+  transform: translateY(-1px);
+}
+
+.toolbar-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+[data-theme="dark"] .toolbar-btn {
+  background: rgba(33, 38, 45, 0.6);
+  border: 1px solid rgba(56, 139, 253, 0.3);
+}
+
+[data-theme="dark"] .toolbar-btn:hover:not(:disabled) {
+  background: rgba(56, 139, 253, 0.2);
+  border-color: rgba(0, 217, 255, 0.5);
+  box-shadow: 0 0 10px rgba(0, 217, 255, 0.2);
+}
+
+.toolbar-icon {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.toolbar-text {
+  font-weight: 500;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .toolbar {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .toolbar-left,
+  .toolbar-right {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .toolbar-text {
+    display: none;
+  }
+
+  .toolbar-btn {
+    padding: 10px;
+    flex: 1;
+  }
+}
