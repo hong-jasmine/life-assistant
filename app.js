@@ -994,6 +994,7 @@ function render() {
   renderTransactions();
   renderTodos();
   updateStats();
+  renderSidebarAccounts(); // 更新側邊欄帳戶餘額
 
   // 更新圖表
   if (window.myPieChart) window.myPieChart.destroy();
@@ -1021,6 +1022,36 @@ function initSidebar() {
   if (openBtn && window.innerWidth <= 768) {
     openBtn.classList.add('show');
   }
+
+  // 註冊點擊外部區域收合側邊欄的事件監聽器（所有螢幕尺寸）
+  document.addEventListener('click', handleOutsideClick);
+}
+
+// 處理點擊側邊欄外區域
+function handleOutsideClick(event) {
+  const sidebar = document.getElementById('sidebar');
+  const openBtn = document.getElementById('sidebar-open-btn');
+
+  // 如果側邊欄已經收合，不做任何事
+  if (!sidebar || sidebar.classList.contains('collapsed')) return;
+
+  // 手機版：如果側邊欄沒有 open class，表示已關閉
+  if (window.innerWidth <= 768 && !sidebar.classList.contains('open')) return;
+
+  // 檢查點擊是否在側邊欄內或展開按鈕上
+  const clickedInsideSidebar = sidebar.contains(event.target);
+  const clickedOpenBtn = openBtn && openBtn.contains(event.target);
+
+  // 如果點擊在側邊欄外且不是展開按鈕，則收合側邊欄
+  if (!clickedInsideSidebar && !clickedOpenBtn) {
+    if (window.innerWidth <= 768) {
+      // 手機版：關閉側邊欄和 overlay
+      closeSidebar();
+    } else {
+      // 桌面版：切換側邊欄
+      toggleSidebar();
+    }
+  }
 }
 
 // 渲染側邊欄帳戶列表
@@ -1029,7 +1060,8 @@ function renderSidebarAccounts() {
   if (!container) return;
 
   container.innerHTML = accounts.map(account => {
-    const balance = account.balance || 0;
+    // 動態計算帳戶餘額
+    const balance = calculateAccountBalance(account.id);
     const balanceClass = balance >= 0 ? 'positive' : 'negative';
     const isActive = currentView === account.id;
 
@@ -1044,6 +1076,38 @@ function renderSidebarAccounts() {
             </button>
         `;
   }).join('');
+
+  // 更新主頁面的總餘額
+  updateHomeTotalBalance();
+}
+
+// 更新主頁面的總餘額
+function updateHomeTotalBalance() {
+  const homeBalanceElement = document.getElementById('home-total-balance');
+  if (!homeBalanceElement) return;
+
+  // 計算所有帳戶的總餘額
+  const totalBalance = accounts.reduce((sum, account) => {
+    return sum + calculateAccountBalance(account.id);
+  }, 0);
+
+  const balanceClass = totalBalance >= 0 ? 'positive' : 'negative';
+  homeBalanceElement.className = `sidebar-balance ${balanceClass}`;
+  homeBalanceElement.textContent = `$${totalBalance.toFixed(2)}`;
+
+  // 更新待辦事項數量
+  updateHomeTodoCount();
+}
+
+// 更新主頁面的待辦事項數量
+function updateHomeTodoCount() {
+  const todoCountElement = document.getElementById('home-todo-count');
+  if (!todoCountElement) return;
+
+  // 計算未完成的待辦事項數量
+  const pendingTodos = todos.filter(todo => !todo.done).length;
+
+  todoCountElement.textContent = `${pendingTodos} 個待辦`;
 }
 
 // 切換到主頁面
