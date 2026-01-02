@@ -32,7 +32,10 @@
    直接在瀏覽器中打開 `index.html` 即可體驗。
 
 ## 📸 介面預覽 (Preview)
+
 <img width="1307" height="723" alt="截圖 2026-01-02 下午2 54 44" src="https://github.com/user-attachments/assets/a0a86c8b-2d0d-4ac7-bbf1-5bacb319e0eb" />
+
+<img width="1623" height="1100" alt="image" src="https://github.com/user-attachments/assets/fc0939da-52ff-4bd3-a94c-f02c4e952bf1" />
 <img width="1602" height="1126" alt="image" src="https://github.com/user-attachments/assets/89dcf8c4-e1ca-45ba-a436-38ca5f5a350a" />
 
 ## 📄 授權 (License)
