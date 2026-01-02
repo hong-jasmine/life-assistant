@@ -19,18 +19,23 @@
 
 1. **複製本倉庫**
    ```bash
-   git clone [https://github.com/hong-jasmine/life-assistant.git](https://github.com/hong-jasmine/life-assistant.git)
+   git clone https://github.com/hong-jasmine/life-assistant.git
+   ```
+
 2. **進入目錄**
-Bash
-cd life-assistant
+   ```bash
+   cd life-assistant
+   ```
 
 3. **開啟專案**
- 直接在瀏覽器中打開 index.html 即可體驗。
+   
+   直接在瀏覽器中打開 `index.html` 即可體驗。
 
-4. **介面預覽 (Preview)**
+## 📸 介面預覽 (Preview)
+
 <img width="1623" height="1100" alt="image" src="https://github.com/user-attachments/assets/fc0939da-52ff-4bd3-a94c-f02c4e952bf1" />
 <img width="1602" height="1126" alt="image" src="https://github.com/user-attachments/assets/89dcf8c4-e1ca-45ba-a436-38ca5f5a350a" />
 
+## 📄 授權 (License)
 
-5. **授權 (License)**
 本專案採用 Apache 2.0 授權。
