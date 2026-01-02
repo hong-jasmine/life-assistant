@@ -6,11 +6,227 @@ let accounts = JSON.parse(localStorage.getItem('accounts')) || [
 ];
 let currentAccount = localStorage.getItem('currentAccount') || 'default';
 let theme = localStorage.getItem('theme') || 'light';
+let currentView = localStorage.getItem('currentView') || 'home'; // 'home' 或帳戶 ID
+let sidebarOpen = window.innerWidth > 768; // 桌面版預設展開
+
+// ========== 成就系統 ==========
+let achievementData = {
+    totalPoints: 0,
+    currentStreak: 0,
+    longestStreak: 0,
+    lastRecordDate: null,
+    totalRecords: 0,
+    milestones: {
+        streak7: false,
+        streak14: false,
+        streak21: false,
+        streak30: false
+    }
+};
+
+// 初始化成就系統
+function initAchievements() {
+    const saved = localStorage.getItem('achievementData');
+    if (saved) {
+        achievementData = JSON.parse(saved);
+    }
+    updateAchievementDisplay();
+}
+
+// 更新成就顯示
+function updateAchievementDisplay() {
+    const streakElement = document.getElementById('streak-days');
+    const pointsElement = document.getElementById('total-points');
+    const rocketIcon = document.getElementById('rocket-icon');
+    
+    if (streakElement) {
+        streakElement.textContent = `${achievementData.currentStreak} 天`;
+    }
+    
+    if (pointsElement) {
+        pointsElement.textContent = `${achievementData.totalPoints} 積分`;
+    }
+    
+    // 更新火箭等級
+    updateRocketLevel(rocketIcon);
+    
+    // 更新軌跡星星
+    updateProgressStars();
+}
+
+// 更新火箭等級
+function updateRocketLevel(rocketIcon) {
+    if (!rocketIcon) return;
+    
+    // 移除所有等級 class
+    rocketIcon.classList.remove('level-2', 'level-3', 'level-4');
+    
+    const streak = achievementData.currentStreak;
+    if (streak >= 22) {
+        rocketIcon.classList.add('level-4');
+    } else if (streak >= 15) {
+        rocketIcon.classList.add('level-3');
+    } else if (streak >= 8) {
+        rocketIcon.classList.add('level-2');
+    }
+}
+
+// 更新進度星星
+function updateProgressStars() {
+    const container = document.getElementById('progress-stars');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    const streak = achievementData.currentStreak;
+    const maxStars = 30; // 最多 30 顆星星（對應 30 天）
+    const starCount = Math.min(streak, maxStars);
+    
+    for (let i = 0; i < starCount; i++) {
+        const star = document.createElement('div');
+        star.className = 'progress-star';
+        star.textContent = '✨';
+        
+        // 沿著拋物線路徑定位星星
+        const progress = i / maxStars;
+        const x = progress * 100; // 0-100%
+        const y = calculateParabolaY(progress); // 計算 Y 位置
+        
+        star.style.left = `${x}%`;
+        star.style.top = `${y}%`;
+        star.style.animationDelay = `${i * 0.1}s`;
+        
+        container.appendChild(star);
+    }
+}
+
+// 計算拋物線 Y 座標
+function calculateParabolaY(progress) {
+    // 使用二次貝茲曲線公式
+    // 起點: (0, 50), 控制點: (0.5, 10), 終點: (1, 50)
+    const t = progress;
+    const p0 = 50;
+    const p1 = 10;
+    const p2 = 50;
+    
+    const y = Math.pow(1 - t, 2) * p0 + 2 * (1 - t) * t * p1 + Math.pow(t, 2) * p2;
+    return y;
+}
+
+// 檢查並更新連續天數
+function checkAndUpdateStreak() {
+    const today = new Date().toDateString();
+    const lastDate = achievementData.lastRecordDate;
+    
+    if (!lastDate) {
+        // 第一次記帳
+        achievementData.currentStreak = 1;
+        achievementData.lastRecordDate = today;
+    } else if (lastDate === today) {
+        // 今天已經記過帳了，不增加連續天數
+        return;
+    } else {
+        const lastDateTime = new Date(lastDate);
+        const todayTime = new Date(today);
+        const diffTime = todayTime - lastDateTime;
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 1) {
+            // 連續記帳
+            achievementData.currentStreak++;
+            achievementData.lastRecordDate = today;
+            
+            // 檢查里程碑獎勵
+            checkMilestones();
+        } else {
+            // 中斷了，重置連續天數
+            achievementData.currentStreak = 1;
+            achievementData.lastRecordDate = today;
+            
+            // 重置里程碑
+            achievementData.milestones = {
+                streak7: false,
+                streak14: false,
+                streak21: false,
+                streak30: false
+            };
+        }
+    }
+    
+    // 更新最長連續天數
+    if (achievementData.currentStreak > achievementData.longestStreak) {
+        achievementData.longestStreak = achievementData.currentStreak;
+    }
+}
+
+// 檢查里程碑獎勵
+function checkMilestones() {
+    const streak = achievementData.currentStreak;
+    
+    if (streak === 7 && !achievementData.milestones.streak7) {
+        achievementData.milestones.streak7 = true;
+        achievementData.totalPoints += 10;
+        showMilestoneNotification('🎉 連續記帳 7 天！獲得 10 積分獎勵！');
+    } else if (streak === 14 && !achievementData.milestones.streak14) {
+        achievementData.milestones.streak14 = true;
+        achievementData.totalPoints += 20;
+        showMilestoneNotification('🎊 連續記帳 14 天！獲得 20 積分獎勵！');
+    } else if (streak === 21 && !achievementData.milestones.streak21) {
+        achievementData.milestones.streak21 = true;
+        achievementData.totalPoints += 30;
+        showMilestoneNotification('🌟 連續記帳 21 天！獲得 30 積分獎勵！');
+    } else if (streak === 30 && !achievementData.milestones.streak30) {
+        achievementData.milestones.streak30 = true;
+        achievementData.totalPoints += 50;
+        showMilestoneNotification('🚀 連續記帳 30 天！火箭發射！獲得 50 積分獎勵！');
+    }
+}
+
+// 顯示里程碑通知
+function showMilestoneNotification(message) {
+    // 簡單的 alert，可以之後改成更好看的通知
+    setTimeout(() => {
+        alert(message);
+    }, 300);
+}
+
+// 添加記帳積分
+function addRecordPoints() {
+    achievementData.totalPoints += 1;
+    achievementData.totalRecords += 1;
+}
+
+// 保存成就資料
+function saveAchievementData() {
+    localStorage.setItem('achievementData', JSON.stringify(achievementData));
+}
+
+// 更新成就系統（在新增記帳時調用）
+function updateAchievements() {
+    checkAndUpdateStreak();
+    addRecordPoints();
+    saveAchievementData();
+    updateAchievementDisplay();
+}
+
 
 // 分類定義
-const CATEGORIES = {
-  expense: ['食物', '交通', '娛樂', '購物', '醫療', '教育', '居家', '寵物', '保險', '水電瓦斯', '綜合性', '電話網路', '貸款', '其他'],
-  income: ['薪資', '獎金', '投資', '兼職', '教學鐘點費', '意外之喜', '人家轉帳的', '其他'],
+// 預設類別（不可刪除）
+const DEFAULT_CATEGORIES = {
+  expense: ['食物', '交通', '娛樂', '購物', '醫療', '教育', '其他'],
+  income: ['薪資', '獎金', '投資', '兼職', '其他']
+};
+
+// 自定義類別（可新增/刪除）
+let customCategories = JSON.parse(localStorage.getItem('customCategories')) || {
+  expense: [],
+  income: []
+};
+
+// 合併後的完整類別列表
+let CATEGORIES = {
+  expense: [...DEFAULT_CATEGORIES.expense, ...customCategories.expense],
+  income: [...DEFAULT_CATEGORIES.income, ...customCategories.income],
   transfer: ['轉帳']
 };
 
@@ -24,9 +240,10 @@ const ACCOUNT_TYPES = {
 // 初始化
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
-  initAccountSelector();
+  initSidebar();
   render();
   initCharts();
+  initAchievements();
 });
 
 // ========== 主題切換 ==========
@@ -46,7 +263,7 @@ function toggleTheme() {
 }
 
 // ========== 帳戶管理 ==========
-function initAccountSelector() {
+function renderSidebarAccounts() {
   const selector = document.getElementById('account-selector');
   if (!selector) return;
 
@@ -138,7 +355,7 @@ function addAccount() {
 
   document.getElementById('new-account-name').value = '';
   renderAccountList();
-  initAccountSelector();
+  renderSidebarAccounts();
 }
 
 function deleteAccount(accountId) {
@@ -152,7 +369,7 @@ function deleteAccount(accountId) {
     }
 
     renderAccountList();
-    initAccountSelector();
+    renderSidebarAccounts();
     render();
   }
 }
@@ -186,6 +403,8 @@ function addTransaction() {
   document.getElementById('transaction-name').value = '';
   document.getElementById('transaction-amount').value = '';
   document.getElementById('transaction-date').value = '';
+  // 更新成就系統
+  updateAchievements();
 
   saveAndRender();
 }
@@ -303,6 +522,12 @@ function clearFilter() {
 }
 
 function getAccountTransactions() {
+  // 如果是主頁面視圖,返回所有交易
+  if (currentView === 'home') {
+    return transactions;
+  }
+  
+  // 否則返回當前帳戶的交易
   return transactions.filter(t =>
     t.account === currentAccount ||
     (t.type === 'transfer' && t.toAccount === currentAccount)
@@ -427,7 +652,7 @@ function importData() {
           todos = data.todos || [];
           accounts = data.accounts || accounts;
           saveAndRender();
-          initAccountSelector();
+          renderSidebarAccounts();
           alert('數據匯入成功！');
         }
       } catch (error) {
@@ -755,3 +980,278 @@ function render() {
   if (window.myLineChart) window.myLineChart.destroy();
   initCharts();
 }
+
+// ========== 側邊欄功能 ==========
+
+// 初始化側邊欄
+function initSidebar() {
+    renderSidebarAccounts();
+    updateSidebarState();
+    
+    // 根據 currentView 設置初始狀態
+    if (currentView !== 'home') {
+        const todoSection = document.getElementById('todo-section');
+        if (todoSection) {
+            todoSection.style.display = 'none';
+        }
+    }
+}
+
+// 渲染側邊欄帳戶列表
+function renderSidebarAccounts() {
+    const container = document.getElementById('sidebar-accounts');
+    if (!container) return;
+    
+    container.innerHTML = accounts.map(account => {
+        const balance = account.balance || 0;
+        const balanceClass = balance >= 0 ? 'positive' : 'negative';
+        const isActive = currentView === account.id;
+        
+        return `
+            <button class="sidebar-item ${isActive ? 'active' : ''}" 
+                    onclick="switchToAccount('${account.id}')">
+                <span class="sidebar-icon">${getAccountIcon(account.type)}</span>
+                <div style="flex: 1;">
+                    <div class="sidebar-name">${account.name}</div>
+                    <div class="sidebar-balance ${balanceClass}">$${balance.toFixed(2)}</div>
+                </div>
+            </button>
+        `;
+    }).join('');
+}
+
+// 切換到主頁面
+function switchToHome() {
+    currentView = 'home';
+    localStorage.setItem('currentView', currentView);
+    
+    const todoSection = document.getElementById('todo-section');
+    if (todoSection) {
+        todoSection.style.display = 'block';
+    }
+    
+    updateSidebarState();
+    render();
+    
+    // 手機版自動關閉側邊欄
+    if (window.innerWidth <= 768) {
+        closeSidebar();
+    }
+}
+
+// 切換到帳戶視圖
+function switchToAccount(accountId) {
+    currentView = accountId;
+    currentAccount = accountId;
+    localStorage.setItem('currentView', currentView);
+    localStorage.setItem('currentAccount', currentAccount);
+    
+    const todoSection = document.getElementById('todo-section');
+    if (todoSection) {
+        todoSection.style.display = 'none';
+    }
+    
+    updateSidebarState();
+    render();
+    
+    // 手機版自動關閉側邊欄
+    if (window.innerWidth <= 768) {
+        closeSidebar();
+    }
+}
+
+// 更新側邊欄狀態
+function updateSidebarState() {
+    // 更新主頁面按鈕狀態
+    const homeBtn = document.querySelector('.sidebar-home');
+    if (homeBtn) {
+        if (currentView === 'home') {
+            homeBtn.classList.add('active');
+        } else {
+            homeBtn.classList.remove('active');
+        }
+    }
+    
+    // 重新渲染帳戶列表
+    renderSidebarAccounts();
+}
+
+// 側邊欄展開/收合
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('main-content');
+    const overlay = document.getElementById('sidebar-overlay');
+    const openBtn = document.getElementById('sidebar-open-btn');
+    
+    if (!sidebar || !mainContent) return;
+    
+    if (window.innerWidth <= 768) {
+        // 手機版
+        sidebar.classList.toggle('open');
+        if (overlay) {
+            overlay.classList.toggle('active');
+        }
+    } else {
+        // 桌面版
+        const isCollapsed = sidebar.classList.contains('collapsed');
+        sidebar.classList.toggle('collapsed');
+        mainContent.classList.toggle('sidebar-collapsed');
+        sidebarOpen = !sidebar.classList.contains('collapsed');
+        
+        // 控制展開按鈕的顯示
+        if (openBtn) {
+            if (sidebar.classList.contains('collapsed')) {
+                // 側邊欄已收合，顯示展開按鈕
+                openBtn.classList.add('show');
+            } else {
+                // 側邊欄已展開，隱藏展開按鈕
+                openBtn.classList.remove('show');
+            }
+        }
+    }
+}
+
+function closeSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    
+    if (sidebar) {
+        sidebar.classList.remove('open');
+    }
+    if (overlay) {
+        overlay.classList.remove('active');
+    }
+}
+
+// 取得帳戶圖示
+function getAccountIcon(type) {
+    const icons = {
+        cash: '💰',
+        bank: '🏦',
+        credit: '💳'
+    };
+    return icons[type] || '💰';
+}
+
+
+// ========== 類別管理功能 ==========
+
+let currentCategoryTab = 'expense';
+
+// 顯示類別管理器
+function showCategoryManager() {
+    document.getElementById('category-modal').classList.remove('hidden');
+    switchCategoryTab('expense');
+}
+
+function closeCategoryManager() {
+    document.getElementById('category-modal').classList.add('hidden');
+}
+
+// 切換分頁
+function switchCategoryTab(type) {
+    currentCategoryTab = type;
+    
+    // 更新分頁樣式
+    const expenseTab = document.getElementById('tab-expense');
+    const incomeTab = document.getElementById('tab-income');
+    
+    if (type === 'expense') {
+        expenseTab.className = 'px-4 py-2 font-semibold border-b-2 border-blue-500 text-blue-600 dark:text-blue-400';
+        incomeTab.className = 'px-4 py-2 font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300';
+    } else {
+        expenseTab.className = 'px-4 py-2 font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300';
+        incomeTab.className = 'px-4 py-2 font-semibold border-b-2 border-blue-500 text-blue-600 dark:text-blue-400';
+    }
+    
+    // 渲染類別列表
+    renderCategoryList();
+}
+
+// 渲染類別列表
+function renderCategoryList() {
+    const container = document.getElementById('category-list');
+    if (!container) return;
+    
+    const type = currentCategoryTab;
+    const defaultCats = DEFAULT_CATEGORIES[type] || [];
+    const customCats = customCategories[type] || [];
+    
+    container.innerHTML = [
+        ...defaultCats.map(cat => `
+            <span class="category-tag default">
+                ${cat}
+                <span class="category-badge">預設</span>
+            </span>
+        `),
+        ...customCats.map(cat => `
+            <span class="category-tag custom">
+                ${cat}
+                <button onclick="deleteCustomCategory('${cat}')" class="category-delete">×</button>
+            </span>
+        `)
+    ].join('');
+}
+
+// 新增類別
+function addCustomCategory() {
+    const input = document.getElementById('new-category-name');
+    const name = input.value.trim();
+    const type = currentCategoryTab;
+    
+    if (!name) {
+        alert('請輸入類別名稱！');
+        return;
+    }
+    
+    // 檢查是否已存在
+    if (CATEGORIES[type].includes(name)) {
+        alert('此類別已存在！');
+        return;
+    }
+    
+    // 新增到自定義類別
+    customCategories[type].push(name);
+    CATEGORIES[type].push(name);
+    
+    // 儲存並更新
+    localStorage.setItem('customCategories', JSON.stringify(customCategories));
+    input.value = '';
+    renderCategoryList();
+    updateCategories(); // 更新下拉選單
+}
+
+// 刪除類別
+function deleteCustomCategory(name) {
+    const type = currentCategoryTab;
+    
+    // 檢查是否有交易使用此類別
+    const hasTransactions = transactions.some(t => 
+        t.type === type && t.category === name
+    );
+    
+    if (hasTransactions) {
+        if (!confirm(`有交易記錄使用「${name}」類別，確定要刪除嗎？刪除後這些記錄的類別將變為「其他」。`)) {
+            return;
+        }
+        
+        // 將使用此類別的交易改為「其他」
+        transactions.forEach(t => {
+            if (t.type === type && t.category === name) {
+                t.category = '其他';
+            }
+        });
+        localStorage.setItem('transactions', JSON.stringify(transactions));
+    }
+    
+    // 從自定義類別中移除
+    customCategories[type] = customCategories[type].filter(c => c !== name);
+    CATEGORIES[type] = CATEGORIES[type].filter(c => c !== name);
+    
+    // 儲存並更新
+    localStorage.setItem('customCategories', JSON.stringify(customCategories));
+    renderCategoryList();
+    updateCategories();
+    render();
+}
+
