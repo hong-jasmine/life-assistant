@@ -18,11 +18,82 @@
         <span id="theme-icon" class="text-2xl">🌙</span>
     </button>
 
-    <div class="max-w-7xl mx-auto">
+    <!-- 側邊欄展開按鈕（固定） -->
+    <button onclick="toggleSidebar()" class="sidebar-open-btn btn-hover" id="sidebar-open-btn" title="展開側邊欄">
+        <span class="text-2xl">☰</span>
+    </button>
+
+
+    <!-- 側邊欄 -->
+    <div id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h3>帳戶總覽</h3>
+            <button id="sidebar-toggle" class="sidebar-toggle" onclick="toggleSidebar()">
+                <span id="sidebar-toggle-icon">☰</span>
+            </button>
+        </div>
+        
+        <!-- 主頁面按鈕 -->
+        <button class="sidebar-item sidebar-home active" onclick="switchToHome()">
+            <span class="sidebar-icon">🏠</span>
+            <span class="sidebar-name">主頁面</span>
+        </button>
+        
+        <!-- 帳戶列表 -->
+        <div class="sidebar-accounts" id="sidebar-accounts">
+            <!-- 動態生成 -->
+        </div>
+    </div>
+
+    <!-- 側邊欄遮罩（手機版） -->
+    <div id="sidebar-overlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
+    <div id="main-content" class="main-content max-w-7xl mx-auto">
         <h1 class="text-5xl font-bold text-center mb-2">⚡ 極速卡片.Flash cards</h1>
         <p class="text-center text-xl font-semibold text-gray-600 dark:text-gray-300 mb-8">記帳 + 待辦 + 統計分析</p>
 
         <!-- 統計摘要 -->
+        <!-- 成就里程碑區塊 -->
+        <div id="achievement-section" class="achievement-banner mb-6">
+            <div class="achievement-content">
+                <!-- 火箭圖示 -->
+                <div class="rocket-container">
+                    <span id="rocket-icon" class="rocket">🚀</span>
+                </div>
+                
+                <!-- 拋物線軌跡 -->
+                <div class="trajectory-container">
+                    <svg class="trajectory-svg" viewBox="0 0 400 60">
+                        <path id="trajectory-path" 
+                              d="M 0 50 Q 100 10, 200 30 T 400 50" 
+                              fill="none" 
+                              stroke="url(#gradient)" 
+                              stroke-width="2" 
+                              stroke-dasharray="5,5"/>
+                        <defs>
+                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#a78bfa;stop-opacity:0.3" />
+                                <stop offset="100%" style="stop-color:#60a5fa;stop-opacity:0.8" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <!-- 進度星星 -->
+                    <div id="progress-stars" class="progress-stars"></div>
+                </div>
+                
+                <!-- 成就資訊 -->
+                <div class="achievement-info">
+                    <div class="streak-display">
+                        <span class="streak-icon">🔥</span>
+                        <span id="streak-days" class="streak-text">0 天</span>
+                    </div>
+                    <div class="points-display">
+                        <span class="points-icon">⭐</span>
+                        <span id="total-points" class="points-text">0 積分</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
             <div class="card stat-card rounded-xl shadow-md p-6 text-center">
                 <div class="text-base font-semibold text-gray-700 dark:text-gray-300">總收入</div>
@@ -46,9 +117,6 @@
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-2xl font-semibold text-blue-600 dark:text-blue-400">💰 記帳管理</h2>
                         <div class="flex gap-2">
-                            <select id="account-selector" onchange="switchAccount()" class="border p-2 rounded text-sm">
-                                <option value="default">現金</option>
-                            </select>
                             <button onclick="showAccountManager()"
                                 class="bg-purple-500 text-white px-3 py-1 rounded text-sm hover:bg-purple-600 btn-hover"
                                 title="管理帳戶">
@@ -61,7 +129,6 @@
                             </button>
                         </div>
                     </div>
-
                     <!-- 新增記錄表單 -->
                     <div class="space-y-3 mb-6">
                         <div class="grid grid-cols-2 gap-3">
@@ -69,15 +136,22 @@
                                 <option value="expense">支出</option>
                                 <option value="income">收入</option>
                             </select>
-                            <select id="transaction-category" class="border p-2 rounded">
-                                <option value="食物">食物</option>
-                                <option value="交通">交通</option>
-                                <option value="娛樂">娛樂</option>
-                                <option value="購物">購物</option>
-                                <option value="醫療">醫療</option>
-                                <option value="教育">教育</option>
-                                <option value="其他">其他</option>
-                            </select>
+                            <div class="flex gap-2">
+                                <select id="transaction-category" class="border p-2 rounded flex-1">
+                                    <option value="食物">食物</option>
+                                    <option value="交通">交通</option>
+                                    <option value="娛樂">娛樂</option>
+                                    <option value="購物">購物</option>
+                                    <option value="醫療">醫療</option>
+                                    <option value="教育">教育</option>
+                                    <option value="其他">其他</option>
+                                </select>
+                                <button onclick="showCategoryManager()" 
+                                        class="bg-purple-500 text-white px-3 rounded hover:bg-purple-600 btn-hover"
+                                        title="管理類別">
+                                    ⚙️
+                                </button>
+                            </div>
                         </div>
                         <input id="transaction-name" type="text" placeholder="項目名稱" class="border p-2 rounded w-full">
                         <div class="grid grid-cols-2 gap-3">
@@ -138,8 +212,10 @@
             </div>
 
             <!-- 待辦與圖表區域 -->
-            <div class="space-y-6">
+            <div id="todo-and-charts-section" class="space-y-6">
                 <!-- 待辦事項 -->
+                <!-- 待辦事項區塊 -->
+                <div id="todo-section">
                 <div class="card rounded-xl shadow-md p-6">
                     <h2 class="text-2xl font-semibold text-green-600 dark:text-green-400 mb-4">✅ 待辦事項</h2>
 
@@ -172,8 +248,10 @@
                     <!-- 任務列表 -->
                     <ul id="todo-list" class="space-y-1 max-h-80 overflow-y-auto"></ul>
                 </div>
+                </div>
 
                 <!-- 圖表統計 -->
+                <div id="charts-section">
                 <div class="card rounded-xl shadow-md p-6">
                     <h2 class="text-2xl font-semibold text-purple-600 dark:text-purple-400 mb-4">📊 統計圖表</h2>
 
@@ -191,6 +269,7 @@
                     <div class="chart-container">
                         <canvas id="lineChart"></canvas>
                     </div>
+                </div>
                 </div>
             </div>
 
@@ -283,6 +362,43 @@
         </div>
     </div>
 
+
+    <!-- 類別管理模態視窗 -->
+    <div id="category-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="card bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 max-w-2xl w-full mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-2xl font-semibold">⚙️ 類別管理</h3>
+                <button onclick="closeCategoryManager()" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-2xl">×</button>
+            </div>
+            
+            <!-- 分頁 -->
+            <div class="flex gap-2 mb-4 border-b border-gray-200 dark:border-gray-700">
+                <button id="tab-expense" onclick="switchCategoryTab('expense')" 
+                        class="px-4 py-2 font-semibold border-b-2 border-blue-500 text-blue-600 dark:text-blue-400">
+                    支出類別
+                </button>
+                <button id="tab-income" onclick="switchCategoryTab('income')" 
+                        class="px-4 py-2 font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                    收入類別
+                </button>
+            </div>
+            
+            <!-- 新增類別 -->
+            <div class="mb-4 flex gap-2">
+                <input id="new-category-name" type="text" placeholder="輸入新類別名稱" 
+                       class="border border-gray-300 dark:border-gray-600 p-2 rounded flex-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                <button onclick="addCustomCategory()" 
+                        class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 btn-hover">
+                    ➕ 新增
+                </button>
+            </div>
+            
+            <!-- 類別列表 -->
+            <div id="category-list" class="flex flex-wrap gap-2 max-h-96 overflow-y-auto">
+                <!-- 動態生成 -->
+            </div>
+        </div>
+    </div>
     <script src="app.js"></script>
     <script>
         // 主題圖標更新
